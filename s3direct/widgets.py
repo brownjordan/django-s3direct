@@ -8,6 +8,12 @@ from django.template.loader import render_to_string
 from django.utils.http import urlunquote_plus
 from django.conf import settings
 
+try:
+    import boto3
+    from botocore.exceptions import ClientError
+except ImportError:
+    boto3 = None
+
 
 class S3DirectWidget(widgets.TextInput):
     class Media:
@@ -21,6 +27,18 @@ class S3DirectWidget(widgets.TextInput):
     def render(self, name, value, **kwargs):
         file_url = value or ''
         csrf_cookie_name = getattr(settings, 'CSRF_COOKIE_NAME', 'csrftoken')
+        file_name = os.path.basename(urlunquote_plus(file_url))
+        if kwargs["use_presigned_url"] and file_url:
+            if isinstance(file_name, tuple):
+                file_name = file_name[0]
+            # generate a presigned URL for the asset
+            s3_client = boto3.client('s3', "us-east-1")
+            try:
+                file_url = s3_client.generate_presigned_url('get_object',
+                                                            Params={'Bucket': settings.AWS_STORAGE_BUCKET_NAME,'Key': file_name},
+                                                            ExpiresIn=3600)
+            except ClientError as e:
+                pass
 
         ctx = {
             'policy_url': reverse('s3direct'),
@@ -29,7 +47,7 @@ class S3DirectWidget(widgets.TextInput):
             'name': name,
             'csrf_cookie_name': csrf_cookie_name,
             'file_url': file_url,
-            'file_name': os.path.basename(urlunquote_plus(file_url)),
+            'file_name': file_name,
         }
 
         return mark_safe(
