@@ -12,7 +12,11 @@ except ImportError:
     from urlparse import unquote
 from .utils import (get_aws_credentials, get_aws_v4_signature,
                     get_aws_v4_signing_key, get_s3direct_destinations, get_key)
-
+try:
+    import boto3
+    from botocore.exceptions import ClientError
+except ImportError:
+    boto3 = None
 
 @csrf_protect
 @require_POST
@@ -101,6 +105,18 @@ def get_upload_params(request):
                 upload_data[optional_param] = option(file_name)
             else:
                 upload_data[optional_param] = option
+                
+    use_presigned_url = dest.get('use_presigned_url')           
+    if use_presigned_url and boto3:
+        # generate a presigned URL for the asset
+        s3_client = boto3.client('s3', "us-east-1")
+        try:
+            signed_url = s3_client.generate_presigned_url('get_object',
+                                                        Params={'Bucket': bucket,'Key': upload_data["object_key"]},
+                                                        ExpiresIn=3600)
+            upload_data["signed_url"] = signed_url
+        except ClientError as e:
+            pass
 
     resp = json.dumps(upload_data)
     return HttpResponse(resp, content_type='application/json')
