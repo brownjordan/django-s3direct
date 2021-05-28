@@ -22,13 +22,14 @@ class S3DirectWidget(widgets.TextInput):
 
     def __init__(self, *args, **kwargs):
         self.dest = kwargs.pop('dest', None)
+        self.use_presigned_url = kwargs.pop('use_presigned_url', None)
         super(S3DirectWidget, self).__init__(*args, **kwargs)
 
     def render(self, name, value, **kwargs):
         file_url = value or ''
         csrf_cookie_name = getattr(settings, 'CSRF_COOKIE_NAME', 'csrftoken')
         file_name = os.path.basename(urlunquote_plus(file_url))
-        if kwargs["use_presigned_url"] and file_url:
+        if self.use_presigned_url and file_url:
             if isinstance(file_name, tuple):
                 file_name = file_name[0]
             # generate a presigned URL for the asset
