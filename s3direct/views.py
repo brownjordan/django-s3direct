@@ -111,10 +111,10 @@ def get_upload_params(request):
         # generate a presigned URL for the asset
         s3_client = boto3.client('s3', "us-east-1")
         try:
-            signed_url = s3_client.generate_presigned_url('get_object',
+            presigned_url = s3_client.generate_presigned_url('get_object',
                                                         Params={'Bucket': bucket,'Key': upload_data["object_key"]},
                                                         ExpiresIn=3600)
-            upload_data["signed_url"] = signed_url
+            upload_data["presigned_url"] = presigned_url
         except ClientError as e:
             pass
 

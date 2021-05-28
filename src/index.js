@@ -69,11 +69,15 @@ const disableSubmit = status => {
   });
 };
 
-const finishUpload = (element, endpoint, bucket, objectKey) => {
+const finishUpload = (element, endpoint, bucket, objectKey, presignedUrl) => {
   const link = element.querySelector('.file-link');
   const url = element.querySelector('.file-url');
   url.value = endpoint + '/' + bucket + '/' + objectKey;
-  link.setAttribute('href', url.value);
+  if (typeof presignedUrl != "undefined") {
+    link.setAttribute('href', presignedUrl);
+  } else {
+    link.setAttribute('href', url.value);  
+  }
   link.innerHTML = parseNameFromUrl(url.value)
     .split('/')
     .pop();
@@ -214,12 +218,22 @@ const initiateUpload = (element, signingUrl, uploadParameters, file, dest) => {
     evaporate.add(addConfig).then(
       s3Objkey => {
         cancelButton.removeEventListener('click', cancelUpload);
-        finishUpload(
-          element,
-          uploadParameters.endpoint,
-          uploadParameters.bucket,
-          s3Objkey
-        );
+        if (uploadParameters.presigned_url) {
+          finishUpload(
+            element,
+            uploadParameters.endpoint,
+            uploadParameters.bucket,
+            s3Objkey,
+            uploadParameters.presigned_url
+          );
+        } else {
+          finishUpload(
+            element,
+            uploadParameters.endpoint,
+            uploadParameters.bucket,
+            s3Objkey
+          );
+        }
       },
       reason => {
         cancelButton.removeEventListener('click', cancelUpload);
