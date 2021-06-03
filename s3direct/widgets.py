@@ -1,6 +1,8 @@
 from __future__ import unicode_literals
 
 import os
+from urllib.parse import urlparse
+
 from django.forms import widgets
 from django.utils.safestring import mark_safe
 from django.urls import reverse
@@ -32,11 +34,15 @@ class S3DirectWidget(widgets.TextInput):
         if self.use_presigned_url and file_url:
             if isinstance(file_name, tuple):
                 file_name = file_name[0]
+            s3_key = urlparse(file_url).path.replace(settings.AWS_STORAGE_BUCKET_NAME + "/","")
+            # url must be relative
+            if s3_key[0] == "/":
+                s3_key = s3_key[1:]
             # generate a presigned URL for the asset
             s3_client = boto3.client('s3', "us-east-1")
             try:
                 file_url = s3_client.generate_presigned_url('get_object',
-                                                            Params={'Bucket': settings.AWS_STORAGE_BUCKET_NAME,'Key': file_name},
+                                                            Params={'Bucket': settings.AWS_STORAGE_BUCKET_NAME,'Key': s3_key},
                                                             ExpiresIn=3600)
             except ClientError as e:
                 pass
