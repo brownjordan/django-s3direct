@@ -72,7 +72,7 @@ const disableSubmit = status => {
 const finishUpload = (element, endpoint, bucket, objectKey, presignedUrl) => {
   const link = element.querySelector('.file-link');
   const url = element.querySelector('.file-url');
-  url.value = endpoint + '/' + bucket + '/' + objectKey;
+  url.value = "https://" + bucket + ".s3.amazonaws.com/" + objectKey;
   if (typeof presignedUrl != "undefined") {
     link.setAttribute('href', presignedUrl);
   } else {
