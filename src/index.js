@@ -69,12 +69,14 @@ const disableSubmit = status => {
   });
 };
 
-const finishUpload = (element, endpoint, bucket, objectKey, presignedUrl) => {
+const finishUpload = (element, endpoint, bucket, objectKey, extra) => {
   const link = element.querySelector('.file-link');
   const url = element.querySelector('.file-url');
+  const originalName = element.querySelector('.file-original-name');
+  originalName.value = extra['file_name'];
   url.value = "https://" + bucket + ".s3.amazonaws.com/" + objectKey;
-  if (typeof presignedUrl != "undefined") {
-    link.setAttribute('href', presignedUrl);
+  if (extra.hasOwnProperty("presigned_url")) {
+    link.setAttribute('href', extra['presigned_url']);
   } else {
     link.setAttribute('href', url.value);  
   }
@@ -218,22 +220,17 @@ const initiateUpload = (element, signingUrl, uploadParameters, file, dest) => {
     evaporate.add(addConfig).then(
       s3Objkey => {
         cancelButton.removeEventListener('click', cancelUpload);
+        let extra = { file_name: file.name };
         if (uploadParameters.presigned_url) {
-          finishUpload(
-            element,
-            uploadParameters.endpoint,
-            uploadParameters.bucket,
-            s3Objkey,
-            uploadParameters.presigned_url
-          );
-        } else {
-          finishUpload(
-            element,
-            uploadParameters.endpoint,
-            uploadParameters.bucket,
-            s3Objkey
-          );
+          extra['presigned_url'] = uploadParameters.presigned_url;
         }
+        finishUpload(
+          element,
+          uploadParameters.endpoint,
+          uploadParameters.bucket,
+          s3Objkey,
+          extra
+        );
       },
       reason => {
         cancelButton.removeEventListener('click', cancelUpload);
