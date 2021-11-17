@@ -6,6 +6,24 @@ import SparkMD5 from 'spark-md5';
 import './css/bootstrap-progress.css';
 import './css/styles.css';
 
+if (!Element.prototype.matches) {
+  Element.prototype.matches =
+    Element.prototype.msMatchesSelector ||
+    Element.prototype.webkitMatchesSelector;
+}
+
+if (!Element.prototype.closest) {
+  Element.prototype.closest = function(s) {
+    var el = this;
+
+    do {
+      if (Element.prototype.matches.call(el, s)) return el;
+      el = el.parentElement || el.parentNode;
+    } while (el !== null && el.nodeType === 1);
+    return null;
+  };
+}
+
 const request = (method, url, data, headers, el, cb) => {
   let req = new XMLHttpRequest();
   req.open(method, url, true);
@@ -273,7 +291,7 @@ const checkFileAndInitiateUpload = event => {
 
 const removeUpload = e => {
   e.preventDefault();
-  const el = e.target.parentElement;
+  const el = e.target.closest('.s3direct');
   el.querySelector('.file-url').value = '';
   el.querySelector('.file-input').value = '';
   el.className = 's3direct form-active';
