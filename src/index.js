@@ -259,7 +259,7 @@ const initiateUpload = (element, signingUrl, uploadParameters, file, dest) => {
 };
 
 const checkFileAndInitiateUpload = event => {
-  const element = event.target.parentElement;
+  const element = event.target.closest('.s3direct');
   const file = element.querySelector('.file-input').files[0];
   const dest = element.querySelector('.file-dest').value;
   const destCheckUrl = element.getAttribute('data-policy-url');
