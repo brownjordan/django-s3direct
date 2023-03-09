@@ -67,8 +67,8 @@ def get_upload_params(request):
     endpoint = dest.get('endpoint',
                         getattr(settings, 'AWS_S3_ENDPOINT_URL', None))
     if not endpoint:
-        resp = json.dumps({'error': 'S3 endpoint config missing.'})
-        return HttpResponseServerError(resp, content_type='application/json')
+        # construct endpoint from region
+        endpoint = f"https://s3.{region}.amazonaws.com"
 
     aws_credentials = get_aws_credentials()
     if not aws_credentials.secret_key or not aws_credentials.access_key:
