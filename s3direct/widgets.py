@@ -1,13 +1,12 @@
 from __future__ import unicode_literals
 
 import os
-from urllib.parse import urlparse
+from urllib.parse import urlparse, unquote_plus
 
 from django.forms import widgets
 from django.utils.safestring import mark_safe
 from django.urls import reverse
 from django.template.loader import render_to_string
-from django.utils.http import urlunquote_plus
 from django.conf import settings
 
 try:
@@ -30,7 +29,7 @@ class S3DirectWidget(widgets.TextInput):
     def render(self, name, value, **kwargs):
         file_url = value or ''
         csrf_cookie_name = getattr(settings, 'CSRF_COOKIE_NAME', 'csrftoken')
-        file_name = os.path.basename(urlunquote_plus(file_url))
+        file_name = os.path.basename(unquote_plus(file_url))
         if self.use_presigned_url and file_url:
             if isinstance(file_name, tuple):
                 file_name = file_name[0]
